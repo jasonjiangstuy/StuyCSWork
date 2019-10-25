@@ -1,32 +1,36 @@
-to doit
-  ca
-  cro 10
-  ask turtles [fd 10]
-  dsq
-  ask turtles [die]
+to circle
+  cd
+  ct
+  cro 1
+  ask turtles[
+    set color blue
+    fd radii
+      pd
+    rt 90
+    repeat 360[
+    fd ((radii / 180) * pi)
+    rt 1
+    ]
+die
+  ]
+  tick
 end
 
-to dsq
-  ask turtles [
-  pd
+to startup
+  reset-ticks
+end
 
-  rt 90
-  fd 3
-    helper
-    rt 270
-    fd 1.5
-    rt 105
-    helper
-    rt 270 fd 3
+to square
+  cro 1
+  ask turtles[
+  rt 45
+
   ]
 
 end
-
-to helper
-    repeat 3 [
-      rt 270
-      fd 3
-    ]
+to scs
+  circle
+  square
 
 end
 @#$#@#$#@
@@ -51,20 +55,35 @@ GRAPHICS-WINDOW
 16
 -16
 16
-0
-0
+1
+1
 1
 ticks
 30.0
 
+SLIDER
+73
+93
+245
+126
+radii
+radii
+0
+10
+5.0
+1
+1
+NIL
+HORIZONTAL
+
 BUTTON
-119
+51
+38
+121
 71
-182
-104
 NIL
-doit
-NIL
+circle
+T
 1
 T
 OBSERVER
@@ -74,20 +93,22 @@ NIL
 NIL
 1
 
-SLIDER
-28
-164
-200
-197
-square-size
-square-size
-1
-16
-1.0
-1
-1
+BUTTON
+43
+184
+128
+217
 NIL
-HORIZONTAL
+startup\n
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
 
 @#$#@#$#@
 ## WHAT IS IT?

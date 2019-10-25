@@ -1,32 +1,191 @@
-to doit
-  ca
-  cro 10
-  ask turtles [fd 10]
-  dsq
-  ask turtles [die]
+globals [length-of-stick]
+
+to setup
+      reset-ticks
+
 end
 
-to dsq
+to ha
+  cd
+  ct
+  cro 1
+  ask turtles[
+   set color white
+   set pen-size 2
+   setxy -5 -4
+   pd
+   fd 8
+   setxy -5 0
+   rt 90
+   fd 4
+   rt -90
+   fd 4
+   fd -8
+   rt 90
+   pu
+   fd 3
+   pd
+   setxy 4 4
+   rt 77
+    fd 8
+    fd -4
+    set heading -90
+    fd 1.75
+
+
+    die
+
+  ]
+  tick
+end
+
+to pentagon
+  cd
+  ct
+  cro 1
+
   ask turtles [
+  set color red
+  set pen-size 2
+
+  fd ((cos 36) * 10)
+  pd
+  rt 126
+  repeat 5 [
+      fd 10
+      rt 72
+  ]
+
+  die
+  ]
+  tick
+
+
+end
+
+to square
+  cd
+  ct
+  cro 4
+
+  ask turtles [
+    set color blue
+    set pen-size 3
+    fd 5
+    rt -45
+    pd
+    repeat 4 [
+    fd square-side-length
+    rt 90
+    ]
+    die
+  ]
+  tick
+end
+
+to So
+  ct
+  cd
+  cro 1
+  let x 0.05
+  ask turtles[
+  set color white
+  set pen-size 3
+  setxy -2 5
+  rt -80
   pd
 
-  rt 90
-  fd 3
-    helper
-    rt 270
-    fd 1.5
-    rt 105
-    helper
-    rt 270 fd 3
+    repeat 180[
+    fd x
+    rt -1
+    ]
+
+    repeat 180[
+    fd x
+    rt 1
+    ]
+    pu
+    setxy 4 5
+    pd
+    set heading 90
+    repeat 2 [
+    repeat 90[
+        fd x
+        rt 1
+      ]
+      fd 6
+         repeat 90[
+        fd x
+        rt 1
+      ]
+
+
+    ]
+
+    die
+  ]
+  tick
+end
+to genders
+  set length-of-stick 2
+  cd
+  ct
+  m
+  f
+  tick
+end
+to m
+  cro 1
+  ask turtles [
+
+    setxy 0 0
+    fd ((-360 * 0.03)/(2 * pi))
+    set heading 180
+    pd
+    set color red
+  set pen-size 2
+    rt 90
+    repeat 360[
+    fd 0.03
+    rt 1
+    ]
+    rt -90
+    fd length-of-stick
+    fd (-1 * (length-of-stick / 2))
+    rt 90
+    fd (length-of-stick / 2)
+    fd (-1 * length-of-stick)
+  die
   ]
 
 end
 
-to helper
-    repeat 3 [
-      rt 270
-      fd 3
+to f
+    cro 1
+  ask turtles [
+    setxy 36.8 2.8
+    fd ((-360 * 0.03)/(2 * pi))
+    set heading 50
+    pd
+    set color blue
+  set pen-size 2
+    rt 90
+    repeat 360[
+    fd 0.03
+    rt 1
     ]
+    rt -90
+    fd length-of-stick
+    rt 135
+    fd (length-of-stick / 2)
+    fd (-1 * (length-of-stick / 2))
+    rt 90
+    fd (length-of-stick / 2)
+    fd (-1 * (length-of-stick / 2))
+
+
+  die
+  ]
 
 end
 @#$#@#$#@
@@ -51,19 +210,119 @@ GRAPHICS-WINDOW
 16
 -16
 16
-0
-0
+1
+1
 1
 ticks
 30.0
 
 BUTTON
-119
-71
-182
-104
+19
+11
+89
+44
+1. HA
+ha\n
 NIL
-doit
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+18
+58
+138
+91
+2. Pentagon
+pentagon\n
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+18
+107
+91
+140
+NIL
+setup\n
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+19
+196
+129
+229
+3. Squares
+square\n
+T
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+SLIDER
+19
+153
+212
+186
+square-side-length
+square-side-length
+1
+4
+4.0
+1
+1
+NIL
+HORIZONTAL
+
+BUTTON
+20
+245
+93
+278
+4. So 
+So\n
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+20
+289
+131
+322
+5. Genders
+genders
 NIL
 1
 T
@@ -75,16 +334,31 @@ NIL
 1
 
 SLIDER
-28
-164
-200
-197
-square-size
-square-size
+15
+330
+187
+363
+testcircle
+testcircle
+35
+38
+36.8
+0.1
 1
-16
-1.0
-1
+NIL
+HORIZONTAL
+
+SLIDER
+95
+396
+267
+429
+testcircleb
+testcircleb
+0
+4
+2.8
+0.1
 1
 NIL
 HORIZONTAL

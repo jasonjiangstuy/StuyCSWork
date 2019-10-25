@@ -1,33 +1,22 @@
-to doit
-  ca
-  cro 10
-  ask turtles [fd 10]
-  dsq
-  ask turtles [die]
-end
+to fred
+  ct
+  cd
+  cro 1
+  ask turtles[
+    pd
+    repeat 4 [
+      fd Square-size
+      rt 90
 
-to dsq
-  ask turtles [
-  pd
-
-  rt 90
-  fd 3
-    helper
-    rt 270
-    fd 1.5
-    rt 105
-    helper
-    rt 270 fd 3
-  ]
-
-end
-
-to helper
-    repeat 3 [
-      rt 270
-      fd 3
     ]
+    die
 
+  ]
+  tick
+end
+
+to setup
+  reset-ticks
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -51,20 +40,20 @@ GRAPHICS-WINDOW
 16
 -16
 16
-0
-0
+1
+1
 1
 ticks
 30.0
 
 BUTTON
-119
-71
-182
-104
-NIL
-doit
-NIL
+31
+91
+97
+124
+start
+fred\n
+T
 1
 T
 OBSERVER
@@ -75,19 +64,53 @@ NIL
 1
 
 SLIDER
-28
-164
-200
-197
-square-size
-square-size
+29
+37
+201
+70
+Square-size
+Square-size
 1
-16
-1.0
+10
+10.0
 1
 1
 NIL
 HORIZONTAL
+
+BUTTON
+64
+184
+127
+217
+NIL
+ca\n
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+44
+143
+117
+176
+NIL
+setup\n
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
 
 @#$#@#$#@
 ## WHAT IS IT?
