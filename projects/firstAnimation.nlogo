@@ -1,4 +1,4 @@
-globals [stage-number person1 myAirplane introbars cinder portal alien police window2 disneysprite godisney]
+globals [stage-number person1 myAirplane introbars cinder portal alien police window2 disneysprite godisney lander exitstart]
 
 
 to background-outerspace [withmoon] ;setup
@@ -20,12 +20,12 @@ to background-outerspace [withmoon] ;setup
   cro 1 [
     set color green + 1
   set shape "ufo side"
-  set size 3
+  set size 4
     set alien self
   ]
 
   cro 1 [
-    set color grey
+    set color grey + 2
     set shape "airplane-flying"
     set size 14
     setxy -16 12
@@ -38,7 +38,7 @@ to background-outerspace [withmoon] ;setup
    set shape "portal flipped"
    set size 13
    set xcor n-of-object "x" myAirplane + 5
-   set ycor n-of-object "y" myAirplane
+   set ycor n-of-object "y" myAirplane + 0.1
   ]
 
  cro 1 [
@@ -86,14 +86,27 @@ to background-airport ;setup
 
   ;set up airplane
   cro 1 [
-    set color grey
+    set color grey + 2
     set shape "airplane"
     set size 14
     setxy -3 -12
     set myAirplane self
   ]
 end
-
+to talk-moon [x tiles colortext]
+  ask patches with [pycor <= 15 and pycor >= 13]
+  [
+    set pcolor black
+  ]
+  ask patch 2 14[
+   set plabel-color colortext
+    set plabel x
+  ]
+  if colortext != white[
+  ask patches with [pycor <= 15 and pycor >= 13 and pxcor <= 2 and pxcor >= (2 - tiles) ]
+  [set pcolor white]
+  ]
+end
 to place-floor [name-of-block startingblock]
 
   let temp 0
@@ -140,6 +153,7 @@ to introduction
   talk-intro "A trip to DisneyLand by Jason Jiang"
   tick
   cro 1[
+  set color white
   set shape "traveler1stand"
   set person1 self
   set size 9
@@ -169,32 +183,58 @@ to introduction
   cd
 
 end
+to walk-toflipped [xcoord]
+  while [n-of-object "x" person1 <= xcoord]
+  [
+    ask person1[
+    set xcor xcor + 0.2
+     set shape "traveler1flippedwalk"
+    ]
+    tick
+    wait 0.01
+    ask person1[
+    set xcor xcor + 0.2
+      set shape "traveler1flippedstand"
+    ]
+    tick
+    wait 0.01
+  ]
+end
 
+to walk-to [xcoord]
+  while [xcor_greater_than_x person1 xcoord]
+  [
+    ask person1[
+    set xcor xcor - 0.2
+
+    set shape "traveler1walk"
+    ]
+
+    tick
+    wait 0.01
+    ask person1[
+    set xcor xcor - 0.2
+
+    set shape "traveler1stand"
+    ]
+
+    tick
+    wait 0.01
+  ]
+end
 to get-on-plane
   cro 1[
+  set color white
   set shape "traveler1stand"
   set person1 self
   set size 6
   setxy 16 -15
   ]
   ;start of movement
-  while [xcor_greater_than_x person1 0]
-  [
-    ask person1[
-    set xcor xcor - 0.2
-    set shape "traveler1walk"
-    ]
-    tick
-    wait 0.01
-    ask person1[
-    set xcor xcor - 0.2
-    set shape "traveler1stand"
-    ]
-    tick
-    wait 0.01
-  ]
+  walk-to 0
   show "starting talk"
   talk-airport "I'm going to Disney Land!!" white
+  tick
   wait 1
   ask person1[
     die]
@@ -275,19 +315,24 @@ to go
   talk-space "Meanwhile..." -1 White
   tick
   wait 4
-  talk-space "Our Hero has woken up from his deep slumber" -1 White
+  talk-space "Our hero woke up from his deep slumber" -1 White
   tick
   wait 6
   talk-space "" -1 0
   window
-  ca
-  talk-godisney
-  juke
+jukee
   ca
   reset-ticks
   background-spacedisney
+  landing
 end
 
+to jukee
+    ca
+  reset-ticks
+  talk-godisney
+  juke
+end
 to background-spacedisney
   cro 1[
     set size 33
@@ -296,32 +341,162 @@ to background-spacedisney
     die
   ]
 end
+
+to landing
+  emerge 6
+  cro 1[
+   set shape "lander 2"
+   set size 3
+    setxy n-of-plane "x" n-of-plane "y"
+    ht
+    set lander self
+  ]
+  talk-moon "enjoy disney world!!!" 13 green + 1
+  tick
+  wait 1
+  ask lander [st]
+  tick
+  wait 0.5
+  talk-moon "thanks!!" 10 white
+  tick
+    while [(n-of-object "x" alien) < 16][
+    ask alien [fd 0.3]
+    latchedtoalien 9
+    if exitstart != 1[
+      fall
+    ]
+  ]
+  ask alien[ht]
+  let distance-from-alien 8
+  while [distance-from-alien > 0][
+    latchedtoalien distance-from-alien
+    set distance-from-alien distance-from-alien - 1
+    if exitstart != 1[
+      fall
+    ]
+  ]
+  clear-links
+  ask myAirplane[ht]
+  talk-moon "" -1 white
+
+  cro 1[
+  set color white
+  set shape "traveler1stand"
+  set person1 self
+  set size 9
+  setxy (n-of-object "x" lander) (n-of-object "y" lander)
+  ]
+  tick
+  wait 1
+  talk-moon "It's so nice to finally be here" 0 white
+  tick
+  wait 4
+  cro 1[
+    set shape "alien"
+    setxy 10 -4
+    set size 4
+  ]
+  talk-moon "The entrance is this way!" 15 green
+  tick
+  wait 1
+  ask person1[
+   set shape "traveler1flippedstand"
+  ]
+  walk-toflipped 8
+  talk-moon "You are the first one here!!" 17 green
+  tick
+  wait 2
+  talk-moon "Wait.." 0 white
+  tick
+  wait 2
+  talk-moon "Which disney world am I at?" 0 white
+  tick
+  wait 2
+  talk-moon "Our first ever..." 10 green
+  tick
+  wait 3
+  talk-moon "..moon disney world!!" 14 green
+  tick
+  wait 2
+  talk-moon " ... " 0 white
+  tick
+  wait 2
+  talk-moon " Wait... " 0 white
+  tick
+  wait 3
+  talk-moon " I can't breathe here!! " 0 white
+  tick
+  wait 2
+  ask person1 [set shape "traveler1dead"]
+  tick
+  wait 0.5
+  ending
+
+end
+
+to ending
+  cd
+  ask person1[
+    ask other turtles[
+    die
+    ]
+  ]
+  tick
+  ask patch 3 0[
+   set plabel-color black
+   set plabel " The End "
+  ]
+  ask patches [
+   set pcolor 1
+  ]
+  repeat 200[
+  ask patches[
+   set pcolor pcolor * 1.1
+   if pcolor > 9.9[set pcolor 9.9 stop
+     ]
+  ]
+  tick
+    wait 0.05
+  ]
+
+end
+to fall
+  ask lander [
+    ifelse ycor <= -4 [
+     set exitstart 1
+    ]
+    [
+      set ycor ycor - 0.3]
+  ]
+end
+
 to talk-godisney
   background-outerspace "n"
-  emerge
-  talk-space "Wait!!" 5 grey
+  emerge -1
+  talk-space "Wait!! " 4 grey + 2
   repeat 20[
   ask alien [
     fd 0.04
   ]
-    latchedtoalien 8
+    latchedtoalien 9
   ]
-  talk-space "Yeah?" 5 green + 1
-  tick
   wait 2
-  talk-space "We got a passanger that needs to go to Disney World." 22 grey
-  tick
-  wait 4
-  talk-space "Do you know where that is?" 14 grey
+  talk-space "Yeah? " 4 green + 1
   tick
   wait 3
-  talk-space "Yeahh!!!" 7 green + 1
-  tick
-  wait 2
-  talk-space "There is a new one opening up!!" 16 green + 1
+  talk-space "A passenger wants to go to Disney World." 26 grey + 2
   tick
   wait 4
-  talk-space "I'll take a lil' detor to drop off your passanger" 22 green + 1
+  talk-space "Do you know where that is?" 17 grey + 2
+  tick
+  wait 3
+  talk-space "Yeahh!!! " 6 green + 1
+  tick
+  wait 3
+  talk-space "There is a new one opening up!!" 20 green + 1
+  tick
+  wait 4
+  talk-space "I'll take a lil' detor to drop off your passanger" 28 green + 1
   tick
   wait 5
   talk-space "No biggie!!!" 7 green + 1
@@ -331,28 +506,42 @@ end
 
 to juke
   emerge-police
-  talk-space "Ha I got y'all now" 7 blue
+  talk-space "Ha I got y'all now" 10 blue
   tick
   wait 2
-  talk-space "I am all juiced up!! You dont stand a chance!! " 22 blue
+  talk-space "I am all juiced up!! You dont stand a chance!!" 28 blue
   ask alien[
    set heading 0
   ]
-  repeat 270 [dodge]
+  wait 1
+  repeat 67 [dodge]
+  talk-space "Ha u wish u could catch me" 18 green + 1
+  while [alienheading < 160] [dodge]
 end
 
+to-report alienheading
+  let x 0
+  ask alien[
+    set x heading
+  ]
+  report x
+end
 
 to dodge
   ask police[
    ifelse ycor >= 15.1 or xcor >= 15.1
     [ht]
-    [fd 0.9]
+    [fd 0.5]
   ]
   ask alien[
-    fd 0.5
-    lt 1
+    fd 0.3
+    lt 2
   ]
-  latchedtoalien 8
+  ask myAirplane[
+  set heading towards alien
+  ]
+  tick
+  wait 0.02
 end
 to window
     cro 40[
@@ -364,8 +553,9 @@ to window
    cro 1 [
    set shape "disneyspace"
     set disneysprite self
-    set size 5
+    set size 4
     ht
+ setxy 0 0
 
   ]
   cro 1[
@@ -388,28 +578,26 @@ to window
   talk-airplane "Yep still in space!!"
   stall-space 1.5
   ask disneysprite[
-   set xcor 16
-   set ycor 0
-   st
+    setxy 16 0
+    set heading 0
+    st
   ]
-  ask window2[
-    ht st
-  ]
+
   set godisney 1
   talk-airplane "Woahhh!! Hey look we are passing disneyland!!"
   stall-space 2.5
   talk-airplane "Wait that's my stop"
   stall-space 3
-  talk-airplane "*to the flight attendent*"
+  talk-airplane "*to the flight attendant*"
   stall-space 2
-  talk-airplane "*Can you tell the pilot that we passed my stop*"
+  talk-airplane "Can you tell the pilot that we passed my stop?"
   stall-space 4
   talk-airplane ""
   talk-attendent "uhhhh yeah sure..."
   stall-space 3
   talk-attendent "*whispers to other flight attendents*"
   stall-space 2
-  talk-attendent "*strugs*"
+  talk-attendent "*shrugs*"
   stall-space 1
 end
 
@@ -425,7 +613,7 @@ to flytoportal2
   ask myAirplane[
   set heading 90
   ]
-  talk-airport "Alright Passengers" grey
+  talk-airport "Alright Passengers" grey + 2
   talk-airport2 "this is your Pilot speaking..."
   cro 1[
    set size 3
@@ -436,27 +624,27 @@ to flytoportal2
    set shape "gtoc"
   ]
   bufferfly 7
-  talk-airport "We have reached cruising altitude" grey
+  talk-airport "We have reached cruising altitude" grey + 2
   talk-airport2 " you may now unbu-..."
   bufferfly 6
-  talk-airport "Nevermind---- Everyone, we have " grey
+  talk-airport "Nevermind---- Everyone, we have " grey + 2
   talk-airport2 "just recieved word that..."
   bufferfly 6
-  talk-airport "We are rapidly approching an alien portal!!!" grey
+  talk-airport "We are rapidly approaching an alien portal!!!" grey + 2
   talk-airport2 ""
   bufferfly 5
-  talk-airport  "BrAcE fOr ImPaCt!!!" grey
+  talk-airport  "BrAcE fOr ImPaCt!!!" grey + 2
   bufferfly 3
 
 
 
 end
 
-to emerge
+to emerge [ycoords]
     ct
   cro 1 [
-    setxy -16 -1
-    set color grey
+    setxy -16 ycoords
+    set color grey + 2
     set shape "airplane-flying"
     set size 14
     set myAirplane self
@@ -465,9 +653,9 @@ to emerge
   cro 1 [
     set color green + 1
     set shape "ufo side"
-    set size 3
+    set size 4
     set alien self
-    setxy -16 -1
+    setxy -16 ycoords
     set heading 90
     create-link-to myAirplane
   ]
@@ -479,9 +667,9 @@ to emerge
     wait 0.01
   ]
   ask myAirplane[st]
-  while [(distance-betweenxy alien 0 -1) > 0.5][
+  while [(distance-betweenxy alien 0 ycoords) > 0.5][
     ask alien[ fd 0.3]
-    latchedtoalien 8
+    latchedtoalien 9
   ]
 end
 to emerge-police
@@ -502,34 +690,32 @@ to emerge-police
   ]
 end
 to alienchase
-  emerge
+  emerge -1
   talk-space "Aww man the cops are here" 18 green + 1
   tick
   wait 5
   talk-space "They always ruin my fun" 15 green + 1
   emerge-police
   wait 3
-  talk-space "Stop right there!!" 12 blue + 1
+  talk-space "Stop right there!!" 11 blue + 1
   tick
   wait 3
   talk-space "You have broken at least 30 interstellar laws" 28 blue + 1
   tick
   wait 5
-  talk-space "You are under arrest!!" 14 blue + 1
+  talk-space "You are under arrest!! " 14 blue + 1
   tick
   wait 4
-  talk-space "Catch me if you can!!" 14 green + 1
+  talk-space "Catch me if you can!! " 14 green + 1
   while [(n-of-object "x" alien) < 8][
     ask alien [fd 0.2]
-    latchedtoalien 8
+    latchedtoalien 9
     wait 0.01
   ]
-  talk-space "We are in Pursuit!!" 12 blue + 1
-  tick
   while [(n-of-object "x" alien) < 16][
     ask alien [fd 0.3]
     pursuit 8
-    latchedtoalien 8
+    latchedtoalien 9
   ]
   ask alien[ht]
   let distance-from-alien 8
@@ -540,16 +726,16 @@ to alienchase
   ]
   ask myAirplane[ht]
   clear-links
-  buffer (-1 * 5)
-  talk-space "Ahhh shoot I'm running on fumes" 22 blue + 1
-  buffer 0
+  buffer -7
+  talk-space "Ahhh shoot I'm running on fumes" 21 blue + 1
+  buffer -2
     ask alien [st]
   talk-space "You need some help?" 13 green + 1
-  buffer 5
-  talk-space "na im good" 8 blue + 1
+  buffer 3
+  talk-space "na I'm good" 8 blue + 1
   buffer 8
-  talk-space "okkkk!!" 5 green + 1
-  buffer 10
+  talk-space "okkkk!! " 5 green + 1
+  buffer 11
   ask alien [ht]
   buffer 15
   talk-space "" -1 0
@@ -609,7 +795,7 @@ to-report xcor_greater_than_x [target x]
 end
 
 to alientalk
-  talk-space "Ok any minute now..." 14 green + 1
+  talk-space "Ok any minute now..." 13 green + 1
   tick
   wait 3
   talk-space "I got this" 5 green + 1
@@ -627,7 +813,7 @@ to alientalk
   talk-space "0 " 1 green + 1
   tick
   wait 2
-  talk-space "..." 1 green + 1
+  talk-space "... " 1 green + 1
   tick
   wait 2
   talk-space "I said zErO" 6 green + 1
@@ -636,8 +822,7 @@ to alientalk
   talk-space "... " 1 green + 1
   tick
   wait 2
-
-  talk-space "nailed it" 5 green + 1
+  talk-space "nailed it " 5 green + 1
   tick
   ask myAirplane[
    st
@@ -650,16 +835,16 @@ to alientalk
     wait 0.01
     ]
 
-  talk-space "Hey Hey You" 8 green + 1
+  talk-space "Hey Hey You" 8 green + 1;
   tick
   wait 3
-  talk-space "**Ahh help!! Anyone!! Come in!!" 20 grey
+  talk-space "Ahh help!! Radio control!! Come in!!" 22 grey + 2;
   tick
   wait 4
-  talk-space "We are at uhhhhh... Where are we???** " 26 grey
+  talk-space "Where are we??" 10 grey + 2;
   tick
   wait 3
-  talk-space "You are at the edge of space..." 20 green + 1
+  talk-space "You are at the edge of space... " 19 green + 1
   tick
   wait 5
   talk-space "...yeah I'm hijacking your plane sorry" 23 green + 1
@@ -671,54 +856,55 @@ to alientalk
   talk-space "Now that I think about it, this is really mean" 28 green + 1
   tick
   wait 5
-  talk-space "Welp, too late to go back now" 20 green + 1
+  talk-space "Welp, too late to go back now" 19 green + 1
   tick
   wait 3
   ask alien[
   create-link-with myAirplane
   ]
-  talk-space "gotcha!!" 6 green + 1
-  tick
-  wait 0.5
-  talk-space "This will give y'all oxygen" 14 green + 1
-  tick
-  wait 3
-  talk-space "We need oxygen?" 10 grey
+  talk-space "gotcha!! " 6 green + 1
   tick
   wait 2
-  talk-space " ... " 5 green + 1
+  talk-space "This will give y'all oxygen" 15 green + 1
   tick
   wait 3
-  talk-space "Now I feel better about kidnapping you guys." 22 green + 1
+  talk-space "We need oxygen?" 10 grey + 2
   tick
-  latchedtoalien 8
+  wait 2
+  talk-space "..." 2 green + 1
+  tick
+  wait 3
+  talk-space "Now I feel better about kidnapping you guys." 28 green + 1
+  tick
+  wait 1
+  latchedtoalien 9
   wait 2
 
-  talk-space "I'm bringing you to my hometown of Mars" 29 green + 1
+  talk-space "I'm bringing you to my hometown of Mars" 26 green + 1
   tick
   wait 3
-  talk-space "**Please be gentle with us!!** " 20 grey
+  talk-space "Please be gentle with us!!" 17 grey + 2
   tick
   wait 4
   talk-space "You got it!!!" 7 green + 1
   tick wait 3
-  talk-space "Hold on tight!!!" 10 green + 1
+  talk-space "Hold on tight!!! " 10 green + 1
   tick
   wait 3
   repeat 8[
     ask alien[set ycor ycor - 0.3]
-    latchedtoalien 8
+    latchedtoalien 9
   ]
   ask alien[set heading 90]
   while [(n-of-object "x" alien) < 16][
     ask alien[fd 0.3]
-    latchedtoalien 8
+    latchedtoalien 9
   ]
   ask alien[ht]
   latchedtoalien 1
   ask myAirplane [ht]
   clear-links
-  talk-space "" 0 0
+  talk-space "" -1 0
 end
 
 to latchedtoalien [x]
@@ -768,49 +954,52 @@ to object-back
 end
 to object-backspace
   ask other turtles[
+    if shape = "disneyspace"[
+     set xcor xcor - 0.2
+    lt 3
     if xcor <= -15.4[
       set xcor 16
         if shape = "disneyspace"
-         [rt 5
+         [
           if godisney = 1[
             die
             ]
         ]
+      ]
+    ]
 
-      if shape = "star"
-        [set ycor (random 30 - 13)
+   if shape = "star"[
+        if xcor <= -15.4[
+        set xcor 16
+        set ycor (random 30 - 13)
           set size random-float 1 + 0.25
-        ]
+
       ]
 
 
-    set xcor xcor - 0.6
+    set xcor xcor - 0.4
 
   ]
+  ]
   wait 0.02
+
 end
 to spawn-building
 
 
      cro 1[
-    set color random-float 14 * 10 + 6
+    set color random-float 13  * 10 + 9.9
     set shape one-of["house" "plant" "building institution" "building store" "ambulance" "bus" "car" "factory"]
     set size random 4 + 3
     set xcor 16 - random-float 1
     set ycor -15 + random 3
   ]
 end
-to talk-airport [x tcolor]
 
-  ask patch 14 4[
-    set plabel x
-    set plabel-color tcolor
-  ]
-end
 
 to talk-airplane [x]
    ask patch 14 -15[
-    set pcolor white
+    set plabel white
     set plabel x
   ]
 end
@@ -835,9 +1024,15 @@ to talk-space [x tiles colortext]
   [set pcolor white]
 
 end
+to talk-airport [x tcolor]
+  ask patch 14 6[
+    set plabel x
+    set plabel-color tcolor
+  ]
+end
 to talk-airport2 [x]
-  ask patch 14 0[
-    set pcolor grey
+  ask patch 14 4[
+    set plabel-color grey + 2
     set plabel x
   ]
 end
@@ -858,7 +1053,6 @@ end
 to setuptest
   ca
   reset-ticks
-
 end
 
 to flyintoportal
@@ -929,13 +1123,13 @@ to-report ycor-of-plane
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-173
-10
-675
-513
+174
+11
+654
+492
 -1
 -1
-14.97
+14.303030303030303
 1
 20
 1
@@ -956,182 +1150,12 @@ ticks
 30.0
 
 BUTTON
-696
-191
-901
-224
-NIL
-background-outerspace \"y\"\n
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-BUTTON
-838
-69
-962
-102
-NIL
-get-on-plane\n
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-BUTTON
-53
-74
-116
-107
+41
+11
+129
+58
 NIL
 go
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-BUTTON
-728
-31
-813
-64
-NIL
-setuptest\n
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-BUTTON
-827
-29
-924
-62
-NIL
-introduction
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-BUTTON
-50
-17
-113
-50
-NIL
-stop\n\n\n
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-BUTTON
-805
-264
-886
-297
-NIL
-alientalk\n
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-BUTTON
-783
-369
-872
-402
-NIL
-alienchase\n
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-BUTTON
-749
-440
-822
-473
-NIL
-window\n
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-BUTTON
-927
-498
-1061
-531
-NIL
-talk-airplane \"test\"\n
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-BUTTON
-797
-137
-924
-170
-NIL
-talk-godisney\n
 NIL
 1
 T
@@ -1222,6 +1246,17 @@ Polygon -14835848 true false 150 180 160 222 161 208 152 109 151 181
 Polygon -14835848 true false 144 220 144 246 149 272 152 259 144 221
 Rectangle -16777216 false false 150 60 165 75
 Polygon -14835848 true false 72 250 130 213 139 249 73 264
+
+alien
+false
+0
+Circle -10899396 true false 95 5 80
+Polygon -13840069 true false 105 90 120 195 90 285 105 300 135 300 150 225 165 300 195 300 210 285 180 195 195 90
+Rectangle -13840069 true false 135 79 165 90
+Polygon -14835848 true false 195 90 240 150 225 180 165 105
+Polygon -14835848 true false 105 90 60 150 75 180 135 105
+Circle -10899396 true false 125 5 80
+Circle -10899396 true false 110 -25 80
 
 ambulance
 false
@@ -1456,9 +1491,10 @@ Rectangle -5825686 true false 67 60 240 68
 Circle -5825686 true false 124 154 55
 
 disneyspace
-false
+true
 0
-Circle -7500403 true true -338 171 996
+Rectangle -7500403 true true 0 180 300 345
+Circle -7500403 true true -29 180 348
 Circle -16777216 true false 218 247 47
 Circle -16777216 true false 139 217 47
 Circle -16777216 true false 78 248 47
@@ -1478,6 +1514,7 @@ Circle -7500403 true true 22 225 40
 Circle -7500403 true true 232 254 40
 Circle -7500403 true true 78 246 40
 Circle -7500403 true true 147 217 40
+Rectangle -16777216 false false 238 169 253 199
 
 dot
 false
@@ -1600,6 +1637,33 @@ Rectangle -7500403 true true 45 120 255 285
 Rectangle -16777216 true false 120 210 180 285
 Polygon -7500403 true true 15 120 150 15 285 120
 Line -16777216 false 30 120 270 120
+
+lander 2
+true
+0
+Polygon -7500403 true true 135 205 120 235 180 235 165 205
+Polygon -16777216 false false 135 205 120 235 180 235 165 205
+Line -7500403 true 75 30 195 30
+Polygon -7500403 true true 195 150 210 165 225 165 240 150 240 135 225 120 210 120 195 135
+Polygon -16777216 false false 195 150 210 165 225 165 240 150 240 135 225 120 210 120 195 135
+Polygon -7500403 true true 75 75 105 45 195 45 225 75 225 135 195 165 105 165 75 135
+Polygon -16777216 false false 75 75 105 45 195 45 225 75 225 120 225 135 195 165 105 165 75 135
+Polygon -16777216 true false 217 90 210 75 180 60 180 90
+Polygon -16777216 true false 83 90 90 75 120 60 120 90
+Polygon -16777216 false false 135 165 120 135 135 75 150 60 165 75 180 135 165 165
+Circle -7500403 true true 120 15 30
+Circle -16777216 false false 120 15 30
+Line -7500403 true 150 0 150 45
+Polygon -1184463 true false 90 165 105 210 195 210 210 165
+Line -1184463 false 210 165 245 239
+Line -1184463 false 237 221 194 207
+Rectangle -1184463 true false 221 245 261 238
+Line -1184463 false 90 165 55 239
+Line -1184463 false 63 221 106 207
+Rectangle -1184463 true false 39 245 79 238
+Polygon -16777216 false false 90 165 105 210 195 210 210 165
+Rectangle -16777216 false false 221 237 262 245
+Rectangle -16777216 false false 38 237 79 245
 
 leaf
 false
@@ -1740,6 +1804,58 @@ Circle -7500403 true true 60 60 180
 Circle -16777216 true false 90 90 120
 Circle -7500403 true true 120 120 60
 
+traveler1dead
+false
+5
+Polygon -10899396 true true 165 225 180 195 225 210 210 240 165 225 165 210 180 180 180 195
+Polygon -10899396 true true 180 195 180 180 225 195 225 210 180 195
+Polygon -16777216 false false 165 225 180 195 225 210 210 240 165 225
+Polygon -16777216 false false 180 195 180 180 225 195 180 180 165 210 165 225
+Polygon -16777216 false false 169 204 158 197 164 184 174 191
+Polygon -13791810 true false 162 194
+Rectangle -7500403 true false 134 136 184 162
+Circle -7500403 true false 109 130 38
+Polygon -16777216 true false 161 190 152 149 156 147 162 188
+Polygon -16777216 true false 184 162 227 163 227 156 186 151 227 144 228 137 184 137 184 161
+Rectangle -16777216 true false 104 130 114 168
+Rectangle -16777216 true false 68 138 109 160
+Line -16777216 false 225 195 225 210
+
+traveler1flippedstand
+false
+5
+Polygon -10899396 true true 75 165 105 180 90 225 60 210 75 165 90 165 120 180 105 180
+Polygon -10899396 true true 105 180 120 180 105 225 90 225 105 180
+Polygon -16777216 false false 75 165 105 180 90 225 60 210 75 165
+Polygon -16777216 false false 105 180 120 180 105 225 120 180 90 165 75 165
+Polygon -16777216 false false 96 169 103 158 116 164 109 174
+Polygon -13791810 true false 106 162
+Rectangle -7500403 true false 138 134 164 184
+Circle -7500403 true false 132 109 38
+Polygon -16777216 true false 110 161 151 152 153 156 112 162
+Polygon -16777216 true false 138 184 137 227 144 227 149 186 156 227 163 228 163 184 139 184
+Rectangle -16777216 true false 132 104 170 114
+Rectangle -16777216 true false 140 68 162 109
+Line -16777216 false 105 225 90 225
+
+traveler1flippedwalk
+false
+5
+Polygon -10899396 true true 75 165 105 180 90 225 60 210 75 165 90 165 120 180 105 180
+Polygon -10899396 true true 105 180 120 180 105 225 90 225 105 180
+Polygon -16777216 false false 75 165 105 180 90 225 60 210 75 165
+Polygon -16777216 false false 105 180 120 180 105 225 120 180 90 165 75 165
+Polygon -16777216 false false 96 169 103 158 116 164 109 174
+Polygon -13791810 true false 106 162
+Rectangle -7500403 true false 138 134 164 184
+Circle -7500403 true false 132 109 38
+Polygon -16777216 true false 110 161 151 152 153 156 112 162
+Polygon -16777216 true false 138 184 120 225 135 225 149 186 165 225 180 225 163 184 139 184
+Rectangle -16777216 true false 132 104 170 114
+Rectangle -16777216 true false 140 68 162 109
+Line -16777216 false 105 225 90 225
+Line -16777216 false 90 225 105 225
+
 traveler1stand
 false
 5
@@ -1749,12 +1865,13 @@ Polygon -16777216 false false 225 165 195 180 210 225 240 210 225 165
 Polygon -16777216 false false 195 180 180 180 195 225 180 180 210 165 225 165
 Polygon -16777216 false false 204 169 197 158 184 164 191 174
 Polygon -13791810 true false 194 162
-Rectangle -10899396 true true 136 134 162 184
-Circle -10899396 true true 130 109 38
+Rectangle -7500403 true false 136 134 162 184
+Circle -7500403 true false 130 109 38
 Polygon -16777216 true false 190 161 149 152 147 156 188 162
 Polygon -16777216 true false 162 184 163 227 156 227 151 186 144 227 137 228 137 184 161 184
 Rectangle -16777216 true false 130 104 168 114
 Rectangle -16777216 true false 138 68 160 109
+Line -16777216 false 210 225 195 225
 
 traveler1walk
 false
@@ -1765,12 +1882,14 @@ Polygon -16777216 false false 225 165 195 180 210 225 240 210 225 165
 Polygon -16777216 false false 195 180 180 180 195 225 180 180 210 165 225 165
 Polygon -16777216 false false 204 169 197 158 184 164 191 174
 Polygon -13791810 true false 194 162
-Rectangle -10899396 true true 136 134 162 184
-Circle -10899396 true true 130 109 38
+Rectangle -7500403 true false 136 134 162 184
+Circle -7500403 true false 130 109 38
 Polygon -16777216 true false 190 161 149 152 147 156 188 162
 Polygon -16777216 true false 162 184 180 225 165 225 151 186 135 225 120 225 137 184 161 184
 Rectangle -16777216 true false 130 104 168 114
 Rectangle -16777216 true false 138 68 160 109
+Line -16777216 false 195 225 210 225
+Line -16777216 false 210 225 195 225
 
 tree
 false
