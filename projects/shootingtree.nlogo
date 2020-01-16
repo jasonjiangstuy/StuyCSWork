@@ -1,4 +1,4 @@
-globals[makeup turn leftbuttonheld gamemode settingup cannon-base1 cannon-turret1 cannon-base2 cannon-turret2 risespeed errorcounterleft errorcounterright trees]
+globals[makeup turn leftbuttonheld gamemode settingup cannon-base1 cannon-turret1 cannon-base2 cannon-turret2 risespeed errorcounterleft errorcounterright trees ended]
 turtles-own[playernum raisedirection shoot loaded angle power canshoot istree? isball? canhitwhichcolor? parent]
 patches-own[color-hit corresponding]
 to test
@@ -124,6 +124,10 @@ to testgo
 
 
   cannonballmove
+  testwin
+  if ended = True[
+    stop
+  ]
   tick
   wait 0.03
 
@@ -163,7 +167,59 @@ to-report reporttestangle;done
   report x
 end
 
+to winanimate[left?]
+  ask turtles[ht]
+  let x (list "p" "l" "a" "y" "e" "r")
+  ifelse left?[
+    set x lput "1" x
+  ]
+  [set x lput "2" x]
+  let current 0
+  let moving 0
+  foreach x [
+   y ->
 
+   cro 1[
+     set shape y
+     set color random 255
+     set current self
+     set ycor 5
+
+    ]
+   repeat 30[
+
+      ask current[set size size + 0.3
+        set xcor xcor - 0.4 + moving]
+      tick
+       wait 0.03
+      ]
+    set moving moving + 0.1
+  ]
+end
+to win-left[left?]
+  ifelse left? [
+  ;left wins
+  show "left-wins"
+  winanimate True
+  set ended True
+  ]
+
+  [
+    ;rightwins
+  show "right-wins"
+  winanimate True
+  set ended True
+  ]
+end
+
+to testwin
+  if ((count (turtles with [shape = "shoottreegreen"])) = 0)[
+   win-left True
+    ]
+  if ((count (turtles with [shape = "shoottreered"])) = 0)[
+   win-left False
+  ]
+end
 to-report reporttestangleright;done
   let x 0
   ask cannon-turret2[
@@ -307,6 +363,7 @@ to actualshoot[whichplayer]
      move-to cannon-turret1
       set parent cannon-turret1
      set heading parentheader cannon-turret1 + makeup * -1
+      fd 9
     ]
   ]
 
@@ -319,6 +376,7 @@ to actualshoot[whichplayer]
      move-to cannon-turret2
       set parent cannon-turret2
       set heading parentheader cannon-turret2 + makeup
+      fd 9
   ]
   ]
 end
@@ -335,6 +393,7 @@ to-report swap[thistree tcolor]
     ]
   report swapped
 end
+
 to cannonballmove
    ask turtles[
     if isball? = True[
@@ -498,10 +557,10 @@ errorcounterright
 11
 
 TEXTBOX
-218
-465
-780
-592
+674
+262
+1236
+389
 Player 1 press q to shoot\n\nPlayer 2 click the mouse button to shoot\n\nHave fun !!!!
 20
 0.0
@@ -548,6 +607,23 @@ default
 true
 0
 Polygon -7500403 true true 150 5 40 250 150 205 260 250
+
+1
+true
+0
+Polygon -7500403 true true 120 60 90 120
+Polygon -7500403 true true 135 45 105 105 135 105 165 75 165 210 105 210 105 240 225 240 225 210 195 210 195 45 135 45 90 105 90 105
+
+2
+true
+0
+Polygon -7500403 true true 75 60 75 90 165 75 210 90 210 120 195 135 165 165 120 195 75 225 75 225 75 240 75 255 90 255 150 255 195 255 210 255 240 255 240 225 165 225 225 165 255 135 255 105 240 60 225 45 195 45 120 45 75 60
+
+a
+true
+15
+Polygon -16777216 true false 120 60 135 45
+Polygon -1 true true 120 30 75 225 120 225 135 165 165 165 180 225 225 225 180 30 120 30
 
 airplane
 true
@@ -743,6 +819,11 @@ false
 0
 Circle -7500403 true true 90 90 120
 
+e
+true
+0
+Polygon -7500403 true true 105 60 195 60 195 90 135 90 135 135 195 135 195 135 195 165 135 165 135 195 195 195 195 225 105 225 105 60
+
 face happy
 false
 0
@@ -809,6 +890,12 @@ Rectangle -16777216 true false 120 210 180 285
 Polygon -7500403 true true 15 120 150 15 285 120
 Line -16777216 false 30 120 270 120
 
+l
+true
+15
+Rectangle -1 true true 90 45 135 240
+Rectangle -1 true true 90 195 195 240
+
 leaf
 false
 0
@@ -824,6 +911,14 @@ line half
 true
 0
 Line -7500403 true 150 0 150 150
+
+p
+true
+14
+Rectangle -16777216 true true 90 60 120 240
+Rectangle -16777216 true true 90 60 195 90
+Rectangle -16777216 true true 165 60 195 150
+Rectangle -16777216 true true 90 135 195 165
 
 pentagon
 false
@@ -850,6 +945,11 @@ Polygon -7500403 true true 165 180 165 210 225 180 255 120 210 135
 Polygon -7500403 true true 135 105 90 60 45 45 75 105 135 135
 Polygon -7500403 true true 165 105 165 135 225 105 255 45 210 60
 Polygon -7500403 true true 135 90 120 45 150 15 180 45 165 90
+
+r
+true
+0
+Polygon -7500403 true true 90 45 90 255 120 255 120 180 180 255 210 225 150 165 150 150 180 150 195 135 210 120 225 105 225 75 210 60 180 45 90 45
 
 sheep
 false
@@ -975,6 +1075,11 @@ false
 0
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
+
+y
+true
+15
+Polygon -1 true true 90 60 135 60 150 120 165 60 210 60 165 165 165 240 135 240 135 165 90 60
 @#$#@#$#@
 NetLogo 6.1.1
 @#$#@#$#@
