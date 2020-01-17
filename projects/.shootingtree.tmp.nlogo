@@ -1,7 +1,61 @@
 globals[makeup turn leftbuttonheld gamemode settingup cannon-base1 cannon-turret1 cannon-base2 cannon-turret2 risespeed errorcounterleft errorcounterright trees ended]
-turtles-own[playernum raisedirection shoot loaded angle power canshoot istree? isball? canhitwhichcolor? parent]
+turtles-own[playernum raisedirection shoot loaded angle power canshoot istree? isball? canhitwhichcolor? parent isdased? spining? timestarted drop-animate defaultangle]
 patches-own[color-hit corresponding]
-to test
+
+to go
+
+  let pressedleft leftbuttonheld
+
+  let pressedright mouse-down?;show lil animation // cannon charging up?
+
+
+
+  ask turtles with [canshoot = "yes"][;cannons
+    if loaded[
+    leftbuttonpressed;raises left turret
+    rightbuttonpressed;raises right turret
+    ]
+  ]
+   if (timetoshoot? cannon-turret1) and pressedleft[
+       ;show "shootleft";shoot from left cannon ;------------------------------
+        ask cannon-turret1[set loaded False set shoot False]
+        actualshoot "left";shot left
+        ask cannon-turret1[set heading 60]
+      ]
+
+        set leftbuttonheld False
+   if (timetoshoot? cannon-turret2) and pressedright[
+       ;show "shootright"; shoot from right cannon
+        ask cannon-turret2[set loaded False set shoot False]
+        actualshoot "right"
+        ask cannon-turret2[set heading 300];further add a falling animation
+      ]
+
+  ask turtles with [isdased? = True][
+    ;show "working"
+    if spining? = True[
+     ifelse (timer - timestarted > 2)[
+       show timestarted
+       show timer
+       set spining? False
+       ask parent[set loaded True]
+       ht
+      ]
+      [rt 1]
+    ]
+  ]
+  cannonballmove
+  testwin
+  if ended = True[
+    stop
+  ]
+  tick
+  wait 0.03
+
+
+end
+
+to setup
   ca
   reset-ticks
   set trees []
@@ -11,9 +65,35 @@ to test
   set makeup 15; add to parent heading
   build-cannons["yes"]
   build-tree 3
+  builddazed cannon-turret1
+  builddazed cannon-turret2
   tick
 end
 
+to daze[thiscannon]
+  show "dazing"
+  show thiscannon
+  ask turtles with [isdased? = True][
+   if parent = thiscannon[
+     st
+     set timestarted timer
+     set spining? True
+    ]
+  ]
+end
+to builddazed [myParent]
+  cro 1[
+    move-to myParent
+    set shape "dased"
+    set ycor ycor + 8
+    set xcor xcor * 0.8
+    set size 7
+    set isdased? True
+    set parent myParent
+    ht
+  ]
+
+end
 to angling
   cro 1[
     let x 0
@@ -93,46 +173,6 @@ to-report timetoshoot?[whichplayer]
   report x
 end
 
-to testgo
-
-  let pressedleft leftbuttonheld
-
-  let pressedright mouse-down?;show lil animation // cannon charging up?
-
-
-
-  ask turtles with [canshoot = "yes"][;cannons
-    if loaded[
-    leftbuttonpressed;raises left turret
-    rightbuttonpressed;raises right turret
-    ]
-  ]
-   if (timetoshoot? cannon-turret1) and pressedleft[
-       ;show "shootleft";shoot from left cannon ;------------------------------
-        ask cannon-turret1[set loaded False set shoot False]
-        actualshoot "left";shot left
-        ask cannon-turret1[set heading 60]
-      ]
-
-        set leftbuttonheld False
-   if (timetoshoot? cannon-turret2) and pressedright[
-       show "shootright"; shoot from right cannon
-        ask cannon-turret2[set loaded False set shoot False]
-        actualshoot "right"
-        ask cannon-turret2[set heading 300];further add a falling animation
-      ]
-
-
-  cannonballmove
-  testwin
-  if ended = True[
-    stop
-  ]
-  tick
-  wait 0.03
-
-
-end
 to build-tree[treesize]
   ;each part of tree takes up 3 tiles - starting at orgin y = 0 , 3, 6, 9, 12, 15 up to size 3 * 2
   if treesize <= 3[
@@ -174,26 +214,34 @@ to winanimate[left?]
     set x lput "1" x
   ]
   [set x lput "2" x]
+
+  letters x 5
+  let q (list "w" "i" "n" "s")
+  letters q -3
+
+end
+
+to letters[thislist up]
   let current 0
   let moving 0
-  foreach x [
+  foreach thislist [
    y ->
 
    cro 1[
      set shape y
-     set color random 255
+      set color one-of [7 15 25 35 45 75 85 105 115 125 135] + random-float 2
      set current self
-     set ycor 5
+     set ycor up + (random-float 2 - 1)
 
     ]
-   repeat 30[
-
-      ask current[set size size + 0.3
-        set xcor xcor - 0.4 + moving]
+   repeat 15[
+      ask current[set size size + 0.6
+        set xcor xcor - 0.8 + moving]
       tick
        wait 0.03
       ]
-    set moving moving + 0.01
+    set moving moving + 0.26
+    ask current[set heading (random-float 10) - 5]
   ]
 end
 to win-left[left?]
@@ -207,16 +255,19 @@ to win-left[left?]
   [
     ;rightwins
   show "right-wins"
-  winanimate True
+  winanimate False
   set ended True
   ]
 end
 
 to testwin
-  if ((count (turtles with [shape = "shoottreegreen"])) = 0)[
+  if ((count (turtles with [shape = "shoottreered"])) = 0)[
+    wait 1
+    ask patches [set pcolor black]
    win-left True
     ]
-  if ((count (turtles with [shape = "shoottreered"])) = 0)[
+  if ((count (turtles with [shape = "shoottreegreen"])) = 0)[
+
    win-left False
   ]
 end
@@ -360,6 +411,7 @@ to actualshoot[whichplayer]
      set color white
      set isball? True
      set canhitwhichcolor? red
+     daze cannon-turret1
      move-to cannon-turret1
       set parent cannon-turret1
      set heading parentheader cannon-turret1 + makeup * -1
@@ -373,6 +425,7 @@ to actualshoot[whichplayer]
      set color white
       set isball? True
        set canhitwhichcolor? green
+      daze cannon-turret2
      move-to cannon-turret2
       set parent cannon-turret2
       set heading parentheader cannon-turret2 + makeup
@@ -399,19 +452,18 @@ to cannonballmove
     if isball? = True[
       ifelse can-move? 0.5 [fd 0.5
       if color-hit = canhitwhichcolor?[
-          show "hit"
-          show corresponding
-          show color-hit
-          show "i am"
-          show canhitwhichcolor?
+
+          ;show corresponding
+          ;show color-hit
+          ;show "i am"
+          ;show canhitwhichcolor?
           if (swap corresponding color-hit)[
-          ask parent[set loaded True]
           die
           ]
         ]
 
       ][
-        ask parent[set loaded True]
+
         die
       ]
   ]]
@@ -450,7 +502,7 @@ BUTTON
 125
 101
 NIL
-test\n
+setup\n\n
 NIL
 1
 T
@@ -501,7 +553,7 @@ BUTTON
 129
 59
 NIL
-testgo
+go
 T
 1
 T
@@ -564,6 +616,23 @@ TEXTBOX
 Player 1 press q to shoot\n\nPlayer 2 click the mouse button to shoot\n\nHave fun !!!!
 20
 0.0
+1
+
+BUTTON
+678
+414
+1064
+447
+NIL
+builddazed cannon-turret1\nask turtles with [isdased? = True][st]
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
 1
 
 @#$#@#$#@
@@ -814,6 +883,14 @@ false
 0
 Circle -7500403 true true 0 0 300
 
+dased
+true
+0
+Polygon -1184463 false false 135 120 92 119 81 156 92 171 119 193 158 199 215 198 240 175 240 137 217 115 162 112 133 127 116 155 128 184 169 181 185 174 200 155 194 134 158 143 163 152
+Polygon -1184463 true false 81 100 75 127 54 133 77 141 77 168 90 144 111 147 96 131 111 110 89 118 82 104
+Polygon -1184463 true false 231 93 225 120 204 126 227 134 227 161 240 137 261 140 246 124 261 103 239 111 232 97
+Polygon -1184463 true false 174 166 168 193 147 199 170 207 170 234 183 210 204 213 189 197 204 176 182 184 175 170
+
 dot
 false
 0
@@ -890,6 +967,11 @@ Rectangle -16777216 true false 120 210 180 285
 Polygon -7500403 true true 15 120 150 15 285 120
 Line -16777216 false 30 120 270 120
 
+i
+true
+0
+Polygon -7500403 true true 105 60 105 90 135 90 135 180 105 180 105 210 195 210 195 180 165 180 165 90 165 90 195 90 195 60 105 60
+
 l
 true
 15
@@ -911,6 +993,11 @@ line half
 true
 0
 Line -7500403 true 150 0 150 150
+
+n
+true
+0
+Polygon -7500403 true true 90 210 120 90 150 90 165 165 195 90 225 90 180 210 150 210 135 150 120 210 75 210
 
 p
 true
@@ -950,6 +1037,11 @@ r
 true
 0
 Polygon -7500403 true true 90 45 90 255 120 255 120 180 180 255 210 225 150 165 150 150 180 150 195 135 210 120 225 105 225 75 210 60 180 45 90 45
+
+s
+true
+0
+Polygon -7500403 true true 149 61 205 66 207 90 224 91 157 89 129 99 130 133 176 147 200 162 216 195 209 226 194 241 179 241 149 241 104 241 104 211 176 212 185 207 173 183 149 181 149 181 117 165 98 136 99 104 108 76 123 66 149 61
 
 sheep
 false
@@ -1049,6 +1141,11 @@ Polygon -10899396 true false 105 90 75 75 55 75 40 89 31 108 39 124 60 105 75 10
 Polygon -10899396 true false 132 85 134 64 107 51 108 17 150 2 192 18 192 52 169 65 172 87
 Polygon -10899396 true false 85 204 60 233 54 254 72 266 85 252 107 210
 Polygon -7500403 true true 119 75 179 75 209 101 224 135 220 225 175 261 128 261 81 224 74 135 88 99
+
+w
+true
+0
+Polygon -7500403 true true 81 75 111 75 126 150 141 105 156 105 171 150 186 75 216 75 186 180 156 180 149 149 141 180 111 180 81 75
 
 wheel
 false
