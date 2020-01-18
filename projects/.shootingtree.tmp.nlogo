@@ -1,11 +1,28 @@
-globals[stopending choosing? makeup turn leftbuttonheld gamemode settingup cannon-base1 cannon-turret1 cannon-base2 cannon-turret2 risespeed errorcounterleft errorcounterright trees ended]
-turtles-own[playernum raisedirection shoot loaded angle power canshoot istree? isball? canhitwhichcolor? parent isdased? spining? timestarted drop-animate defaultangle]
+globals[reload-speed size-of-tree choose-stage moving myList1 myList2 animating stopending choosing? makeup turn leftbuttonheld gamemode settingup cannon-base1 cannon-turret1 cannon-base2 cannon-turret2 risespeed errorcounterleft errorcounterright trees ended]
+turtles-own[value playernum raisedirection shoot loaded angle power canshoot istree? isball? canhitwhichcolor? parent isdased? spining? timestarted drop-animate defaultangle]
 patches-own[color-hit corresponding]
 
 to go
   ifelse choosing? = True [choose]
-
   [
+    ifelse animating = True and stopending != True[
+      ifelse (length myList1 > 0)[
+        letter myList1 5
+        if length myList1 = 1 [set moving 0]
+        set myList1 (remove-item 0 myList1)
+      ][
+        ifelse length myList2 > 0[
+        letter myList2 -3
+        if length myList2 = 1 [set moving 0]
+        set myList2 (remove-item 0 myList2)
+        ]
+        [stop]
+      ]
+
+
+    ]
+
+    [
   let pressedleft leftbuttonheld
 
   let pressedright mouse-down?;show lil animation // cannon charging up?
@@ -36,7 +53,7 @@ to go
   ask turtles with [isdased? = True][
     ;show "working"
     if spining? = True[
-     ifelse (timer - timestarted > 2)[
+     ifelse (timer - timestarted > reload-speed)[
        show timestarted
        show timer
        set spining? False
@@ -47,15 +64,57 @@ to go
     ]
   ]
   cannonballmove
-  testwin
-  set stopending
+
+
   if ended = True[
     stop
   ]
-  tick
-  wait 0.03
-
+    testwin ; sets animating True
+    set stopending False
+    ]
   ]
+    tick
+  wait 0.03
+end
+
+to winanimate[left?]
+  ask turtles[ht]
+  show "animate"
+  set myList1 (list "p" "l" "a" "y" "e" "r")
+  show "made list 1"
+  ifelse left?[
+    set myList1 lput "1" myList1
+  ]
+  [set myList1 lput "2" myList1]
+
+
+  set myList2 (list "w" "i" "n" "s")
+
+
+end
+
+to letter[thislist up]
+  let current 0
+
+   cro 1[
+     set shape first thislist
+     set color one-of [7 15 25 35 45 75 85 105 115 125 135] + random-float 2
+     set current self
+     set ycor up + (random-float 2 - 1)
+
+    ]
+   repeat 15[
+      ask current[set size size + 0.6
+        set xcor xcor - 0.8 + moving]
+      if stopending [stop]
+      tick
+       wait 0.05
+      ]
+    set moving moving + 0.26
+    ask current[set heading (random-float 10) - 5]
+
+
+  show remove-item 0 thislist
 end
 
 to setup
@@ -69,16 +128,106 @@ end
 
 to choose-setup
 	;set up the choosing scene
+  set choose-stage 0
 
+  cro 1[
+    set ycor 8
+    set shape "size-of-tree"
+    set size 10
+    set color yellow
+    stamp
+    die
+  ]
+  buildrecommended -12 2 8
+  buildturtle "6" 8 -8 0 6
+  buildturtle "8" 8 0 0 8
+  buildturtle "4" 8 8 0 4
+end
+
+to test
+
+end
+to buildturtle [shapy sizy x y values]
+  cro 1 [set shape shapy
+    set size sizy
+    setxy x y
+    set value values
+  ]
+end
+
+to choose ; will be loops in go
+  if choose-stage = 0 [ ;what size tree
+    let answer 0
+    let distancefrommouse []
+    ask turtles[set color grey
+    set distancefrommouse lput (distancexy (mouse-xcor) (mouse-ycor)) distancefrommouse
+    ]
+    ask turtles with [distancexy (mouse-xcor) (mouse-ycor) <= min distancefrommouse][
+     set color red
+      if mouse-down? [set answer value]
+    ]
+    if answer != 0[
+    set size-of-tree answer
+    wait 0.5
+    set choose-stage 1 ct cd
+
+   cro 1[
+    set ycor 8
+    set shape "reload speed"
+    set size 10
+    set color yellow
+    stamp
+    die
+  ]
+   buildrecommended -4 2 8
+   buildturtle "1-" 8 -8 0 1
+   buildturtle "3" 8 0 0 3
+   buildturtle "5" 8 8 0 5
+    ]
+
+  ]
+  if choose-stage = 1; what reload speed
+  [
+
+    let answer 0
+    let distancefrommouse []
+    ask turtles[set color grey
+    set distancefrommouse lput (distancexy (mouse-xcor) (mouse-ycor)) distancefrommouse
+    ]
+    ask turtles with [distancexy (mouse-xcor) (mouse-ycor) <= min distancefrommouse][
+     set color red
+      if mouse-down? [set answer value]
+    ]
+    if answer != 0[
+    set reload-speed answer
+    wait 0.5
+    set choose-stage 2 ct cd
+    ]
+
+  ]
+  if choose-stage = 2[play-setup]
 end
 
 to stop-end-animation
   set stopending True
 end
 
-to choose ; will be loops in go
+to buildrecommended [x y sizes]
+ cro 1[
+    setxy x y
+    set size sizes
+    set shape "recomm"
+    stamp
+    die
+  ]
+  cro 1[
+   setxy x + sizes y
+   set size sizes
+   set shape "-ended"
+   stamp
+   die
+  ]
 
-  play-setup
 end
 to play-setup
   set trees []
@@ -87,11 +236,10 @@ to play-setup
   set leftbuttonheld False
   set makeup 15; add to parent heading
   build-cannons["yes"]
-  build-tree 3
+  build-tree size-of-tree
   builddazed cannon-turret1
   builddazed cannon-turret2
   set choosing? False
-  tick
 end
 to daze[thiscannon]
   show "dazing"
@@ -198,11 +346,13 @@ end
 
 to build-tree[treesize]
   ;each part of tree takes up 3 tiles - starting at orgin y = 0 , 3, 6, 9, 12, 15 up to size 3 * 2
-  if treesize <= 3[
+  show "building tree"
+
+  if treesize <= 8[
     let x 0.5
     let y 0
     let z 0
-   repeat treesize * 2[
+   repeat treesize[
      cro 1[
         set size 3
         setxy 0 x
@@ -230,44 +380,7 @@ to-report reporttestangle;done
   report x
 end
 
-to winanimate[left?]
-  ask turtles[ht]
-  let x (list "p" "l" "a" "y" "e" "r")
-  ifelse left?[
-    set x lput "1" x
-  ]
-  [set x lput "2" x]
 
-  letters x 5
-  let q (list "w" "i" "n" "s")
-  letters q -3
-
-end
-
-to letters[thislist up]
-  let current 0
-  let moving 0
-  foreach thislist [
-   y ->
-
-   cro 1[
-     set shape y
-      set color one-of [7 15 25 35 45 75 85 105 115 125 135] + random-float 2
-     set current self
-     set ycor up + (random-float 2 - 1)
-
-    ]
-   repeat 15[
-      ask current[set size size + 0.6
-        set xcor xcor - 0.8 + moving]
-      if stopending [stop]
-      tick
-       wait 0.05
-      ]
-    set moving moving + 0.26
-    ask current[set heading (random-float 10) - 5]
-  ]
-end
 to win-left[left?]
   ifelse left? [
   ;left wins
@@ -279,17 +392,20 @@ to win-left[left?]
   [
     ;rightwins
   show "right-wins"
-  winanimate False
+  winanimate True
   set ended True
   ]
 end
 
 to testwin
+  ;show "testwin"
   if ((count (turtles with [shape = "shoottreered"])) = 0)[
-   win-left True
+   set animating True
+    win-left True
     ]
   if ((count (turtles with [shape = "shoottreegreen"])) = 0)[
-   win-left False
+   set animating True
+    win-left False
   ]
 end
 to-report reporttestangleright;done
@@ -532,40 +648,6 @@ NIL
 1
 
 BUTTON
-687
-175
-758
-208
-NIL
-angling\n
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-BUTTON
-53
-130
-134
-163
-Shoot P1
-cannon-shoot-left
-NIL
-1
-T
-OBSERVER
-NIL
-Q
-NIL
-NIL
-1
-
-BUTTON
 62
 26
 129
@@ -582,66 +664,22 @@ NIL
 NIL
 1
 
-MONITOR
-666
-92
-778
-137
-NIL
-leftbuttonheld
-17
-1
-11
-
-MONITOR
-668
-10
-768
-55
-NIL
-reporttestangle
-17
-1
-11
-
-MONITOR
-798
-15
-923
-60
-NIL
-reporttestangleright
-17
-1
-11
-
-MONITOR
-798
-91
-907
-136
-NIL
-errorcounterright
-17
-1
-11
-
 TEXTBOX
-674
-262
-1236
-389
-Player 1 press q to shoot\n\nPlayer 2 click the mouse button to shoot\n\nHave fun !!!!
+665
+14
+1227
+236
+Player 1 press q to \nshoot\n\nPlayer 2 click the \nmouse button to shoot\n\nHave fun !!!!
 20
 0.0
 1
 
 BUTTON
-0
-181
-195
-214
-Stop Ending Animation
+34
+115
+168
+148
+Skip Ending Animation
 stop-end-animation
 NIL
 1
@@ -653,13 +691,30 @@ NIL
 NIL
 1
 
+BUTTON
+22
+180
+153
+213
+Player 1 shoot
+cannon-shoot-left
+NIL
+1
+T
+OBSERVER
+NIL
+Q
+NIL
+NIL
+1
+
 @#$#@#$#@
 ## WHAT IS IT?
 
-This is a two player game that emmulates the popular gun range sport. The objective of this game is to knock all of the disks from your side to the other's. To do so, players launch the cannon stationed on thier side of the playing field. After shooting will have a cooldown. The cannon will rise and fall, making timing essential to winning. 
+This is a two player game that emmulates a popular gun range competition. The objective of this game is to knock all of the disks from your side to the other's. To do so, players launch the cannon stationed on thier side of the playing field. After shooting will have a cooldown. The cannon will rise and fall, making timing essential to winning. 
 
 ## HOW IT WORKS
-To start the game, first press setup, then go. Then good luck and have fun. Note: previous tests have shown that making fun of your opponent seems to have a positive effect on your win-rate. 
+To start the game, first press setup, then go. Then you will be given the options for the size of the tree, and the reload speed. Then good luck and have fun. Player 1 shoots by pressing "q", Player 2 shoots by clicking the mouse button. Note: previous tests have shown that making fun of your opponent seems to have a positive effect on your win-rate. Note: if you want to skip the ending animation you can press the button "Skip Ending Animation".
 
 ## STRATAGIES
 
@@ -669,34 +724,24 @@ To start the game, first press setup, then go. Then good luck and have fun. Note
 
 3. After firing the cannon is aimed perfectally at the bottom disk, if you are behind, this disk is a easy one to hit and buys you time to hit some harder to reach disks. If you are ahead, save this one for last so when every other disk is on your side, you can finish your opponent off with a fast and easy shot.
 
-## THINGS TO NOTICE
-
-(suggested things for the user to notice while running the model)
 
 ## THINGS TO TRY
 
-(suggested things for the user to try to do (move sliders, switches, etc.) with the model)
-
-## EXTENDING THE MODEL
-
-(suggested things to add or change in the Code tab to make the model more complicated, detailed, accurate, etc.)
-
-## NETLOGO FEATURES
-
-(interesting or unusual features of NetLogo that the model uses, particularly in the Code tab; or where workarounds were needed for missing features)
-
-## RELATED MODELS
-
-(models in the NetLogo Models Library and elsewhere which are of related interest)
-
-## CREDITS AND REFERENCES
-
-(a reference to the model's URL on the web if it has one, as well as any other necessary credits, citations, and links)
+Try playing with another human being!!!!
 @#$#@#$#@
 default
 true
 0
 Polygon -7500403 true true 150 5 40 250 150 205 260 250
+
+-ended
+false
+0
+Polygon -7500403 true true 20 99 45 100 46 113 30 111 30 121 45 122 44 134 34 135 32 142 44 142 46 151 21 150 19 98
+Polygon -7500403 true true 57 120 57 150 72 150 72 135 87 135 87 150 102 150 102 120 57 120
+Polygon -7500403 true true 128 123 113 123 113 153 143 153 143 93 128 93 128 123
+Polygon -7500403 true true 216 119 201 119 201 149 231 149 231 89 216 89 216 119
+Polygon -7500403 true true 163 99 188 100 189 113 173 111 173 121 188 122 187 134 177 135 175 142 187 142 189 151 164 150 162 98
 
 1
 true
@@ -704,10 +749,50 @@ true
 Polygon -7500403 true true 120 60 90 120
 Polygon -7500403 true true 135 45 105 105 135 105 165 75 165 210 105 210 105 240 225 240 225 210 195 210 195 45 135 45 90 105 90 105
 
+1-
+true
+0
+Rectangle -7500403 true true 142 113 157 188
+
+10
+true
+0
+Rectangle -7500403 true true 105 105 120 195
+Rectangle -7500403 true true 135 105 180 195
+Rectangle -16777216 true false 150 120 165 180
+
 2
 true
 0
 Polygon -7500403 true true 75 60 75 90 165 75 210 90 210 120 195 135 165 165 120 195 75 225 75 225 75 240 75 255 90 255 150 255 195 255 210 255 240 255 240 225 165 225 225 165 255 135 255 105 240 60 225 45 195 45 120 45 75 60
+
+3
+true
+0
+Polygon -7500403 true true 120 105 120 120 150 120 150 135 135 135 135 150 150 150 150 165 120 165 120 180 165 180 165 105 120 105
+
+4
+true
+0
+Polygon -7500403 true true 120 105 120 150 150 150 150 195 150 180 165 180 165 105 150 105 150 135 135 135 135 105 120 105
+
+5
+true
+0
+Polygon -7500403 true true 165 105 120 105 120 150 150 150 150 165 135 165 120 165 120 180 165 180 165 135 135 135 135 120 165 120 165 105
+
+6
+true
+0
+Polygon -7500403 true true 105 90 165 90 165 105 135 105 135 135 165 135 165 195 105 195 105 105 105 90
+Rectangle -16777216 true false 120 150 150 180
+
+8
+true
+0
+Rectangle -7500403 true true 120 90 180 210
+Rectangle -16777216 true false 135 105 165 135
+Rectangle -16777216 true false 135 150 165 195
 
 a
 true
@@ -1059,6 +1144,31 @@ true
 0
 Polygon -7500403 true true 90 45 90 255 120 255 120 180 180 255 210 225 150 165 150 150 180 150 195 135 210 120 225 105 225 75 210 60 180 45 90 45
 
+recomm
+false
+0
+Polygon -7500403 true true 1 90 1 150 16 150 16 135 31 150 31 135 16 120 31 120 31 90 1 90
+Polygon -7500403 true true 45 116 45 154 75 154 74 144 61 144 60 130 75 129 73 116 61 114 60 102 74 102 75 93 45 91 46 129
+Polygon -7500403 true true 115 104 85 104 85 134 85 149 115 149 115 134 100 134 100 119 115 119 115 119
+Circle -7500403 true true 124 107 40
+Polygon -7500403 true true 175 120 175 150 190 150 190 132 200 131 200 145 209 144 209 134 217 134 220 150 235 150 235 120 190 120 184 119 183 118
+Polygon -7500403 true true 244 119 244 149 259 149 259 131 269 130 269 144 278 143 278 133 286 133 289 149 304 149 304 119 259 119 253 118 252 117
+
+reload speed
+false
+0
+Polygon -7500403 true true 15 90 15 150 30 150 30 135 45 150 45 135 30 120 45 120 45 90 15 90
+Polygon -7500403 true true 61 109 60 148 87 150 90 136 74 136 75 126 86 126 88 111 76 112 78 107 94 105 87 95 62 95 62 116
+Polygon -7500403 true true 105 90 105 150 135 150 135 135 120 135 120 90 105 90
+Circle -7500403 true true 144 99 42
+Polygon -7500403 true true 217 97 226 98 233 150 224 151 219 120 211 150 196 150 205 104 211 96
+Polygon -7500403 true true 240 93 240 151 255 152 269 141 274 109 254 93 240 92
+Polygon -7500403 true true 75 165 30 165 30 210 60 210 60 225 30 225 30 240 75 240 75 195 45 195 45 180 75 180 75 165
+Polygon -7500403 true true 90 165 90 240 105 240 105 210 120 210 120 165 90 165
+Polygon -7500403 true true 135 165 135 240 165 240 165 225 150 225 150 210 165 210 165 195 150 195 150 180 165 180 165 165 135 165
+Polygon -7500403 true true 180 165 180 240 210 240 210 225 195 225 195 210 210 210 210 195 195 195 195 180 210 180 210 165 180 165
+Polygon -7500403 true true 225 165 225 240 240 240 255 225 255 180 240 165 225 165
+
 s
 true
 0
@@ -1091,6 +1201,21 @@ false
 0
 Rectangle -7500403 true true 120 45 180 255
 Circle -2674135 true false 15 90 120
+
+size-of-tree
+false
+0
+Polygon -7500403 true true 105 45 60 45 60 90 90 90 90 105 60 105 60 120 105 120 105 75 75 75 75 60 105 60 105 45
+Polygon -7500403 true true 120 75 120 120 135 120 135 75 120 75
+Polygon -7500403 true true 120 45 120 60 135 60 135 45 120 45
+Polygon -7500403 true true 150 45 195 45 195 60 165 105 195 105 195 120 150 120 150 105 180 60 150 60 150 45
+Polygon -7500403 true true 210 45 210 120 255 120 255 105 225 105 225 90 255 90 255 75 225 75 225 60 255 60 255 45 210 45
+Polygon -7500403 true true 105 150 105 195 150 195 150 150 105 150
+Polygon -7500403 true true 165 150 165 210 180 210 180 180 195 180 195 165 180 165 180 150 195 150 195 135 165 135 165 165
+Polygon -7500403 true true 45 225 45 240 60 240 60 270 75 270 75 240 90 240 90 225 45 225
+Polygon -7500403 true true 99 257 99 272 101 274 113 274 112 258 122 273 133 259 111 242 136 242 136 221 100 221 99 257
+Polygon -7500403 true true 152 227 152 272 182 272 183 264 165 266 165 257 184 258 184 248 166 249 165 238 184 240 186 226 151 228
+Polygon -7500403 true true 198 226 198 271 228 271 229 263 211 265 211 256 230 257 230 247 212 248 211 237 230 239 232 225 197 227
 
 square
 false
