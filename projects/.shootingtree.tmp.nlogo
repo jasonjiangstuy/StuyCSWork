@@ -1,9 +1,11 @@
-globals[makeup turn leftbuttonheld gamemode settingup cannon-base1 cannon-turret1 cannon-base2 cannon-turret2 risespeed errorcounterleft errorcounterright trees ended]
+globals[stopending choosing? makeup turn leftbuttonheld gamemode settingup cannon-base1 cannon-turret1 cannon-base2 cannon-turret2 risespeed errorcounterleft errorcounterright trees ended]
 turtles-own[playernum raisedirection shoot loaded angle power canshoot istree? isball? canhitwhichcolor? parent isdased? spining? timestarted drop-animate defaultangle]
 patches-own[color-hit corresponding]
 
 to go
+  ifelse choosing? = True [choose]
 
+  [
   let pressedleft leftbuttonheld
 
   let pressedright mouse-down?;show lil animation // cannon charging up?
@@ -46,18 +48,39 @@ to go
   ]
   cannonballmove
   testwin
+  set stopending
   if ended = True[
     stop
   ]
   tick
   wait 0.03
 
-
+  ]
 end
 
 to setup
   ca
   reset-ticks
+  set stopending False
+  set choosing? True
+  choose-setup
+
+end
+
+to choose-setup
+	;set up the choosing scene
+
+end
+
+to stop-end-animation
+  set stopending True
+end
+
+to choose ; will be loops in go
+
+  play-setup
+end
+to play-setup
   set trees []
   set risespeed 1
  	set turn 1
@@ -67,9 +90,9 @@ to setup
   build-tree 3
   builddazed cannon-turret1
   builddazed cannon-turret2
+  set choosing? False
   tick
 end
-
 to daze[thiscannon]
   show "dazing"
   show thiscannon
@@ -237,8 +260,9 @@ to letters[thislist up]
    repeat 15[
       ask current[set size size + 0.6
         set xcor xcor - 0.8 + moving]
+      if stopending [stop]
       tick
-       wait 0.03
+       wait 0.05
       ]
     set moving moving + 0.26
     ask current[set heading (random-float 10) - 5]
@@ -262,12 +286,9 @@ end
 
 to testwin
   if ((count (turtles with [shape = "shoottreered"])) = 0)[
-    wait 1
-    ask patches [set pcolor black]
    win-left True
     ]
   if ((count (turtles with [shape = "shoottreegreen"])) = 0)[
-
    win-left False
   ]
 end
@@ -393,9 +414,6 @@ to cannon-shoot-left;done
   	ifelse leftbuttonheld[set leftbuttonheld False][set leftbuttonheld True]
 end
 
-to choose
-	
-end
 to-report parentheader[whichplayer]
   let x False
   ask whichplayer[
@@ -619,12 +637,12 @@ Player 1 press q to shoot\n\nPlayer 2 click the mouse button to shoot\n\nHave fu
 1
 
 BUTTON
-678
-414
-1064
-447
-NIL
-builddazed cannon-turret1\nask turtles with [isdased? = True][st]
+0
+181
+195
+214
+Stop Ending Animation
+stop-end-animation
 NIL
 1
 T
@@ -638,15 +656,18 @@ NIL
 @#$#@#$#@
 ## WHAT IS IT?
 
-(a general understanding of what the model is trying to show or explain)
+This is a two player game that emmulates the popular gun range sport. The objective of this game is to knock all of the disks from your side to the other's. To do so, players launch the cannon stationed on thier side of the playing field. After shooting will have a cooldown. The cannon will rise and fall, making timing essential to winning. 
 
 ## HOW IT WORKS
+To start the game, first press setup, then go. Then good luck and have fun. Note: previous tests have shown that making fun of your opponent seems to have a positive effect on your win-rate. 
 
-(what rules the agents use to create the overall behavior of the model)
+## STRATAGIES
 
-## HOW TO USE IT
+1. It is harder and takes longer to hit the top disks, it is in your best intrest to secure them ASAP, however if you are behind, dont attempt these as your opponent might be able to finish you off before the ball reaches the top disk.
 
-(how to use the model, including a description of each of the items in the Interface tab)
+2. The cannon rises and falls quite fast making it hard to hit the exact disk that you want to. A more accurate way of aiming is to wait a bit to feel the speed that the cannon is going at before taking your shot.
+
+3. After firing the cannon is aimed perfectally at the bottom disk, if you are behind, this disk is a easy one to hit and buys you time to hit some harder to reach disks. If you are ahead, save this one for last so when every other disk is on your side, you can finish your opponent off with a fast and easy shot.
 
 ## THINGS TO NOTICE
 
