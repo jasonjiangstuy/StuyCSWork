@@ -1,0 +1,63 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "CodeLens (Launch) - Tester",
+            "request": "launch",
+            "mainClass": "Tester",
+            "projectName": "apcsa_e5473d78"
+        },
+        {
+            "type": "java",
+            "name": "CodeLens (Launch) - JavaAssignment4",
+            "request": "launch",
+            "mainClass": "JavaAssignment4",
+            "projectName": "apcsa_e5473d78"
+        },
+        {
+            "type": "java",
+            "name": "CodeLens (Launch) - test",
+            "request": "launch",
+            "mainClass": "test",
+            "projectName": "apcsa_e5473d78"
+        },
+        {
+            "type": "java",
+            "name": "CodeLens (Launch) - IntOps",
+            "request": "launch",
+            "mainClass": "IntOps",
+            "projectName": "apcsa_e5473d78"
+        },
+        {
+            "type": "java",
+            "name": "CodeLens (Launch) - UseThree",
+            "request": "launch",
+            "mainClass": "UseThree",
+            "projectName": "apcsa_e5473d78"
+        },
+        {
+            "type": "java",
+            "name": "CodeLens (Launch) - UseArgument",
+            "request": "launch",
+            "mainClass": "UseArgument",
+            "projectName": "apcsa_e5473d78"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch) - Current File",
+            "request": "launch",
+            "mainClass": "${file}"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch)-Test<apcsa_e5473d78>",
+            "request": "launch",
+            "mainClass": "Test",
+            "projectName": "apcsa_e5473d78"
+        }
+    ]
+}
