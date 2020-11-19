@@ -1,0 +1,33 @@
+Overall Design:
+1 List the methods you would want these classes have in common. 
+
+    multiply, divide, add, subtract, floor, ceil, round,
+    toString, toRealNumber, returnNew
+
+Comparisons:
+2 How would you compare a RealNumber to a RealNumber?  Is a method required/preferred? 
+    Run the toRealNumber to get the value of the real number and use the oridinary comparison operators.
+
+3 How can we avoid rounding errors when comparing a RationalNumber to another RationalNumber ? 
+    We can convert the fraction to the lowest comman multiple and compare the new numerators
+
+4 Should we be able to compare a RealNumber  to a RationalNumber ?
+    Yes, while there will be some rounder errors we just have to be aware of it.
+
+toString:
+5 What could/should happen with a zero denominator?
+    Error, or return infinity
+6 What could/should happen when the RationalNumber ratio is negative?
+    The numerator should be negative and the denominator positive.
+7 What could/should happen when you display a RationalNumber with a numerator of 0, or a denominator of 1?
+    Display 0 or just the numerator.
+
+Design Choices:
+8 Should the class be mutable? Why/Why not.
+    Yes, i think RealNumber is just a way to represent numbers, and since int and float are mutable, we should make our object mutable.
+Additionally, for very large numbers in our child class RationalNumber, it would take unnessary time when trying to preform complex oporations
+and simplifying the fraction.
+
+9 When would reducing be required? Why? [Which methods would benefit from a reduction]
+    The methods for a RationalNumber that changes the value should try to reduce the fraction.
+Examples, add, subtract, multiply, divide can make the numerator have a comman factor with the denominator.
