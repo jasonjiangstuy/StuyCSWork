@@ -1,0 +1,20 @@
+public interface NumberGroup
+{ 
+  boolean contains(int myInt);
+}
+
+public class group1 extends NumberGroup{
+    int[] masterArray;
+    group1(int[] args){
+        this.masterArray = args.clone();
+    }
+    public boolean contains(int myInt){
+        for (int i = 0; i < masterArray.length(); i ++){
+            if (myInt == masterArray[i]){
+                return true;
+            }
+        }
+
+        return false;
+    }
+}
