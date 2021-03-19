@@ -6,6 +6,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "Launch printWords",
+            "request": "launch",
+            "mainClass": "printWords",
+            "projectName": "apcsa_b45a0103"
+        },
+        {
+            "type": "java",
             "name": "CodeLens (Launch) - Assignment9",
             "request": "launch",
             "mainClass": "Assignment9",
